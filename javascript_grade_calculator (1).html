@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Grade Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 420px;
+            padding: 30px;
+        }
+        h2 {
+            text-align: center;
+            color: #1a1a1a;
+            margin-bottom: 24px;
+            font-size: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #4a5568;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3182ce;
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3182ce;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2b6cb0;
+        }
+        .error {
+            background-color: #fed7d7;
+            border: 1px solid #f5c6cb;
+            color: #9b2c2c;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            margin-top: 15px;
+            display: none;
+        }
+        .result {
+            margin-top: 24px;
+            padding: 16px;
+            background-color: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: none;
+        }
+        .result h3 {
+            margin-bottom: 12px;
+            color: #2d3748;
+            font-size: 1.1rem;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #4a5568;
+        }
+        .result-row strong {
+            color: #1a202c;
+        }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .grade-a { background-color: #38a169; }
+        .grade-b { background-color: #3182ce; }
+        .grade-c { background-color: #dd6b20; }
+        .grade-d { background-color: #d69e2e; }
+        .grade-f { background-color: #e53e3e; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Grade Calculator</h2>
+    <form id="gradeForm" onsubmit="calculateGrade(event)">
+        <div class="form-group">
+            <label for="sub1">Subject 1 Marks (0–100):</label>
+            <input type="number" id="sub1" min="0" max="100" step="any" placeholder="Enter marks" required>
+        </div>
+        <div class="form-group">
+            <label for="sub2">Subject 2 Marks (0–100):</label>
+            <input type="number" id="sub2" min="0" max="100" step="any" placeholder="Enter marks" required>
+        </div>
+        <div class="form-group">
+            <label for="sub3">Subject 3 Marks (0–100):</label>
+            <input type="number" id="sub3" min="0" max="100" step="any" placeholder="Enter marks" required>
+        </div>
+        <div class="form-group">
+            <label for="sub4">Subject 4 Marks (0–100):</label>
+            <input type="number" id="sub4" min="0" max="100" step="any" placeholder="Enter marks" required>
+        </div>
+        <div class="form-group">
+            <label for="sub5">Subject 5 Marks (0–100):</label>
+            <input type="number" id="sub5" min="0" max="100" step="any" placeholder="Enter marks" required>
+        </div>
+        <button type="submit">Calculate Grade</button>
+        <div id="errorMsg" class="error"></div>
+    </form>
+
+    <div id="resultBox" class="result">
+        <h3>Calculation Summary</h3>
+        <div class="result-row">
+            <span>Total Marks:</span>
+            <strong><span id="totalMarks"></span> / 500</strong>
+        </div>
+        <div class="result-row">
+            <span>Percentage:</span>
+            <strong><span id="percentage"></span>%</strong>
+        </div>
+        <div class="result-row">
+            <span>Grade:</span>
+            <span id="gradeBadge" class="badge"></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateGrade(event) {
+        event.preventDefault();
+
+        const ids = ['sub1', 'sub2', 'sub3', 'sub4', 'sub5'];
+        const marks = [];
+        const errorMsg = document.getElementById('errorMsg');
+        const resultBox = document.getElementById('resultBox');
+
+        errorMsg.style.display = 'none';
+
+        // Retrieve and validate input values
+        for (let i = 0; i < ids.length; i++) {
+            const val = parseFloat(document.getElementById(ids[i]).value);
+            if (isNaN(val) || val < 0 || val > 100) {
+                errorMsg.textContent = `Error: Please enter a valid mark between 0 and 100 for Subject ${i + 1}.`;
+                errorMsg.style.display = 'block';
+                resultBox.style.display = 'none';
+                return;
+            }
+            marks.push(val);
+        }
+
+        // Calculate total and percentage
+        const total = marks.reduce((acc, curr) => acc + curr, 0);
+        const percentage = total / 5;
+
+        // Determine grade and badge style based on percentage
+        let gradeText = '';
+        let badgeClass = '';
+
+        if (percentage >= 90) {
+            gradeText = 'A+ (Outstanding)';
+            badgeClass = 'grade-a';
+        } else if (percentage >= 80) {
+            gradeText = 'A (Excellent)';
+            badgeClass = 'grade-a';
+        } else if (percentage >= 70) {
+            gradeText = 'B (Good)';
+            badgeClass = 'grade-b';
+        } else if (percentage >= 60) {
+            gradeText = 'C (Average)';
+            badgeClass = 'grade-c';
+        } else if (percentage >= 50) {
+            gradeText = 'D (Pass)';
+            badgeClass = 'grade-d';
+        } else {
+            gradeText = 'F (Fail)';
+            badgeClass = 'grade-f';
+        }
+
+        // Render results
+        document.getElementById('totalMarks').textContent = total;
+        document.getElementById('percentage').textContent = percentage.toFixed(2);
+        
+        const badge = document.getElementById('gradeBadge');
+        badge.textContent = gradeText;
+        badge.className = 'badge ' + badgeClass;
+
+        resultBox.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
